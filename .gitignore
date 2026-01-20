@@ -98,3 +98,5 @@ mlruns/
 # Environment variables
 .env
 logs*
+
+.github/
