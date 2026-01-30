@@ -136,3 +136,4 @@ jobs:
           else
             echo "Tag $VERSION already exists, skipping"
           fi
+
