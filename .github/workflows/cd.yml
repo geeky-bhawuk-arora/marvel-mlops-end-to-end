@@ -67,6 +67,7 @@ jobs:
       VERSION: ${{ needs.build-and-version.outputs.version }}
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_AUTH_TYPE: pat
 
     steps:
       - uses: actions/checkout@v4
@@ -91,6 +92,7 @@ jobs:
       VERSION: ${{ needs.build-and-version.outputs.version }}
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_AUTH_TYPE: pat
 
     steps:
       - uses: actions/checkout@v4
@@ -113,6 +115,7 @@ jobs:
       VERSION: ${{ needs.build-and-version.outputs.version }}
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_AUTH_TYPE: pat
 
     steps:
       - uses: actions/checkout@v4
