@@ -15,36 +15,27 @@ jobs:
       version: ${{ steps.version.outputs.version }}
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install UV
-        uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
-      - name: Build Python wheel
+      - name: Build wheel
         run: |
           uv build
-          ls -lh dist/
           test -f dist/*.whl
 
       - name: Increment version
         id: version
         run: |
-          if [ -f version.txt ]; then
-            VERSION=$(cat version.txt)
-          else
-            VERSION="v1"
-          fi
-
+          VERSION=$(cat version.txt 2>/dev/null || echo v1)
           NUM=${VERSION#v}
           NEW_VERSION="v$((NUM + 1))"
-
           echo "$NEW_VERSION" > version.txt
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Commit version bump
+      - name: Commit version
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
@@ -61,24 +52,13 @@ jobs:
     env:
       VERSION: ${{ needs.build-and-version.outputs.version }}
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
-      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      DATABRICKS_TOKEN: ${{ secrets.PAT }}
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: databricks/setup-cli@v0.246.0
 
-      - name: Configure Databricks CLI
-        run: |
-          cat > ~/.databrickscfg << EOF
-          [default]
-          host = $DATABRICKS_HOST
-          client_id = $DATABRICKS_CLIENT_ID
-          client_secret = $DATABRICKS_CLIENT_SECRET
-          EOF
-
-      - name: Deploy to DEV
+      - name: Deploy DEV
         env:
           DATABRICKS_BUNDLE_ENV: dev
         run: |
@@ -96,28 +76,16 @@ jobs:
     env:
       VERSION: ${{ needs.build-and-version.outputs.version }}
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
-      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      DATABRICKS_TOKEN: ${{ secrets.PAT }}
 
     steps:
       - uses: actions/checkout@v4
       - uses: databricks/setup-cli@v0.246.0
 
-      - name: Configure Databricks CLI
-        run: |
-          cat > ~/.databrickscfg << EOF
-          [default]
-          host = $DATABRICKS_HOST
-          client_id = $DATABRICKS_CLIENT_ID
-          client_secret = $DATABRICKS_CLIENT_SECRET
-          EOF
-
-      - name: Deploy to ACC
+      - name: Deploy ACC
         env:
           DATABRICKS_BUNDLE_ENV: acc
-        run: |
-          databricks bundle deploy \
-            --var="version=$VERSION"
+        run: databricks bundle deploy --var="version=$VERSION"
 
 
   deploy-prd:
@@ -128,25 +96,13 @@ jobs:
     env:
       VERSION: ${{ needs.build-and-version.outputs.version }}
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
-      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      DATABRICKS_TOKEN: ${{ secrets.PAT }}
 
     steps:
       - uses: actions/checkout@v4
       - uses: databricks/setup-cli@v0.246.0
 
-      - name: Configure Databricks CLI
-        run: |
-          cat > ~/.databrickscfg << EOF
-          [default]
-          host = $DATABRICKS_HOST
-          client_id = $DATABRICKS_CLIENT_ID
-          client_secret = $DATABRICKS_CLIENT_SECRET
-          EOF
-
-      - name: Deploy to PRD
+      - name: Deploy PRD
         env:
           DATABRICKS_BUNDLE_ENV: prd
-        run: |
-          databricks bundle deploy \
-            --var="version=$VERSION"
+        run: databricks bundle deploy --var="version=$VERSION"
