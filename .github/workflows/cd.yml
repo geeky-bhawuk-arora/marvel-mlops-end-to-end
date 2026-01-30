@@ -15,31 +15,45 @@ jobs:
       version: ${{ steps.version.outputs.version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v7
+      - name: Install UV
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
-      - name: Build wheel
-        run: |
-          uv build
-          test -f dist/*.whl
-
-      - name: Increment version
+      - name: Increment versions (deploy + python)
         id: version
         run: |
-          VERSION=$(cat version.txt 2>/dev/null || echo v1)
-          NUM=${VERSION#v}
-          NEW_VERSION="v$((NUM + 1))"
-          echo "$NEW_VERSION" > version.txt
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          RAW_VERSION=$(cat version.txt 2>/dev/null || echo v1)
+          RAW_VERSION=$(echo "$RAW_VERSION" | tr -d '\n' | tr -d '\r')
 
-      - name: Commit version
+          NUM=${RAW_VERSION#v}
+          NEW_NUM=$((NUM + 1))
+
+          DEPLOY_VERSION="v$NEW_NUM"
+          PY_VERSION="$NEW_NUM.0.0"
+
+          echo "$DEPLOY_VERSION" > version.txt
+          echo "$PY_VERSION" > py_version.txt
+
+          echo "version=$DEPLOY_VERSION" >> $GITHUB_OUTPUT
+
+          echo "Deploy version: $DEPLOY_VERSION"
+          echo "Python version: $PY_VERSION"
+
+      - name: Build Python wheel
+        run: |
+          uv build
+          ls -lh dist/
+          test -f dist/*.whl
+
+      - name: Commit version files
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add version.txt
+          git add version.txt py_version.txt
           git commit -m "chore: bump version to $(cat version.txt)"
           git push
 
@@ -52,7 +66,7 @@ jobs:
     env:
       VERSION: ${{ needs.build-and-version.outputs.version }}
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
-      DATABRICKS_TOKEN: ${{ secrets.PAT }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -76,7 +90,7 @@ jobs:
     env:
       VERSION: ${{ needs.build-and-version.outputs.version }}
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
-      DATABRICKS_TOKEN: ${{ secrets.PAT }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -85,7 +99,9 @@ jobs:
       - name: Deploy ACC
         env:
           DATABRICKS_BUNDLE_ENV: acc
-        run: databricks bundle deploy --var="version=$VERSION"
+        run: |
+          databricks bundle deploy \
+            --var="version=$VERSION"
 
 
   deploy-prd:
@@ -96,7 +112,7 @@ jobs:
     env:
       VERSION: ${{ needs.build-and-version.outputs.version }}
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
-      DATABRICKS_TOKEN: ${{ secrets.PAT }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -105,4 +121,6 @@ jobs:
       - name: Deploy PRD
         env:
           DATABRICKS_BUNDLE_ENV: prd
-        run: databricks bundle deploy --var="version=$VERSION"
+        run: |
+          databricks bundle deploy \
+            --var="version=$VERSION"
