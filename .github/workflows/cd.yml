@@ -5,7 +5,12 @@ on:
 
   push:
     branches:
-        - 'main'
+      - 'main'
+
+# Prevent GitHub from canceling in-progress runs for the same branch
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -15,17 +20,17 @@ jobs:
         environment: [acc, prd]
     environment: ${{ matrix.environment }}
     permissions:
-      contents: write # to push tag
+      contents: write # needed to push git tags
     env:
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@v4
 
       - name: Install Databricks CLI
-        uses: databricks/setup-cli@49580195afe1ccb06d195764a1d0ae9fabfe2edd #v0.246.0
+        uses: databricks/setup-cli@v0.246.0
         with:
           version: 0.246.0
 
@@ -40,34 +45,37 @@ jobs:
           EOF
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7 #v5.4.1
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
       - name: List Databricks CLI profiles
         run: |
-          echo "Listing ~/.databrickscfg content (if it exists):"
-          if [ -f ~/.databrickscfg ]; then
-            cat ~/.databrickscfg
-          else
-            echo "No ~/.databrickscfg found"
-          fi
-      
+          echo "Listing ~/.databrickscfg content:"
+          cat ~/.databrickscfg || echo "No ~/.databrickscfg found"
           echo
-          echo "Listing all profiles via Databricks CLI:"
+          echo "Listing all CLI profiles:"
           databricks auth list || echo "No profiles detected by CLI"
 
-      
       - name: Deploy to Databricks
         env:
           DATABRICKS_BUNDLE_ENV: ${{ matrix.environment }}
         run: |
+          echo "Deploying bundle to Databricks for environment: $DATABRICKS_BUNDLE_ENV"
           databricks bundle deploy \
             --var="git_sha=${{ github.sha }}" \
             --var="branch=${{ github.ref_name }}"
+
+          # Safe git tagging only in acc
           if [ "${{ matrix.environment }}" = "acc" ]; then
             VERSION=$(cat version.txt)
-            echo "VERSION=$VERSION"
-            git tag "$VERSION"
-            git push origin "$VERSION"
+            if ! git rev-parse "$VERSION" >/dev/null 2>&1; then
+              echo "Creating and pushing tag: $VERSION"
+              git tag "$VERSION"
+              git push origin "$VERSION"
+            else
+              echo "Tag $VERSION already exists, skipping"
+            fi
           fi
+
+          echo "Deployment complete!"
