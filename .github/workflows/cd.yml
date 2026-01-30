@@ -49,6 +49,27 @@ jobs:
             exit 1
           fi
 
+      - name: Get Current Version
+        run: |
+          if [ -f version.txt ]; then
+            VERSION=$(cat version.txt)
+            echo "Current version: $VERSION"
+          else
+            VERSION="v1"
+            echo "No version file found, starting at $VERSION"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Increment Version
+        run: |
+          # Extract the number from the version string (e.g., v1 -> 1)
+          VERSION_NUMBER=$(echo $VERSION | sed 's/v//')
+          NEW_VERSION_NUMBER=$((VERSION_NUMBER + 1))
+          NEW_VERSION="v$NEW_VERSION_NUMBER"
+          echo "New version: $NEW_VERSION"
+          echo $NEW_VERSION > version.txt
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
       - name: Deploy to DEV
         env:
           DATABRICKS_BUNDLE_ENV: dev
@@ -56,12 +77,14 @@ jobs:
           echo "Deploying bundle to DEV..."
           databricks bundle deploy \
             --var="git_sha=${{ github.sha }}" \
-            --var="branch=${{ github.ref_name }}"
+            --var="branch=${{ github.ref_name }}" \
+            --var="version=$NEW_VERSION"
 
       - name: Verify DEV deploy
         run: |
           echo "Listing DEV bundle files in workspace:"
           databricks workspace ls /Workspace/Users/${USER}/.bundle/dev/marvel-characters/files || echo "No files found"
+
 
   deploy-acc:
     runs-on: ubuntu-latest
@@ -118,21 +141,10 @@ jobs:
           echo "Deploying bundle to ACC..."
           databricks bundle deploy \
             --var="git_sha=${{ github.sha }}" \
-            --var="branch=${{ github.ref_name }}"
+            --var="branch=${{ github.ref_name }}" \
+            --var="version=$NEW_VERSION"
 
       - name: Verify ACC deploy
         run: |
           echo "Listing ACC bundle files in workspace:"
           databricks workspace ls /Workspace/Shared/.bundle/acc/marvel-characters/files || echo "No files found"
-
-      - name: Tag version for ACC
-        run: |
-          VERSION=$(cat version.txt)
-          if git rev-parse "$VERSION" >/dev/null 2>&1; then
-            echo "Tag $VERSION already exists, skipping"
-          else
-            echo "Creating and pushing tag: $VERSION"
-            git tag "$VERSION"
-            git push origin "$VERSION"
-          fi
-# hello
