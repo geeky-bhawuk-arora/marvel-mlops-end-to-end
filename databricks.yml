@@ -37,7 +37,7 @@ targets:
     presets:
       name_prefix: 'acc_'
     workspace:
-      host: <your host>
+      host: https://dbc-8806ae94-e7ec.cloud.databricks.com
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
       profile: marvelous
     variables:
@@ -46,8 +46,10 @@ targets:
   prd:
     mode: production
     workspace:
-      host: <your host>
+      host: https://dbc-8806ae94-e7ec.cloud.databricks.com
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
       profile: marvelous
     variables:
       schedule_pause_status: PAUSED # normally UNPAUSED
+
+# checking 
