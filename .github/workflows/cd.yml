@@ -69,10 +69,12 @@ jobs:
           echo $NEW_VERSION > version.txt
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
+      - name: Debug Version
+        run: echo "VERSION is: $VERSION"
+
       - name: Deploy to DEV
         env:
           DATABRICKS_BUNDLE_ENV: dev
-          VERSION: ${{ env.VERSION }}  # Explicitly set the version as an environment variable
         run: |
           echo "Deploying bundle to DEV..."
           databricks bundle deploy \
@@ -137,7 +139,6 @@ jobs:
       - name: Deploy to ACC
         env:
           DATABRICKS_BUNDLE_ENV: acc
-          VERSION: ${{ env.VERSION }}  # Explicitly set the version as an environment variable
         run: |
           echo "Deploying bundle to ACC..."
           databricks bundle deploy \
@@ -194,15 +195,9 @@ jobs:
             exit 1
           fi
 
-      - name: Ensure PRD folder exists
-        run: |
-          databricks workspace mkdirs /Workspace/Teams/data-platform/.bundle/prd/marvel-characters
-          databricks workspace ls /Workspace/Teams/data-platform/.bundle/prd || echo "Folder ready"
-
       - name: Deploy to PRD
         env:
           DATABRICKS_BUNDLE_ENV: prd
-          VERSION: ${{ env.VERSION }}  # Explicitly set the version as an environment variable
         run: |
           echo "Deploying bundle to PRD..."
           databricks bundle deploy \
@@ -213,4 +208,4 @@ jobs:
       - name: Verify PRD deploy
         run: |
           echo "Listing PRD bundle files in workspace:"
-          databricks workspace ls /Workspace/Teams/data-platform/.bundle/prd/marvel-characters/files || echo "No files found"
+          databricks workspace ls /Workspace/Shared/.bundle/prd/marvel-characters/files || echo "No files found"
