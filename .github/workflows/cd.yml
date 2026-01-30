@@ -72,12 +72,13 @@ jobs:
       - name: Deploy to DEV
         env:
           DATABRICKS_BUNDLE_ENV: dev
+          VERSION: ${{ env.VERSION }}  # Explicitly set the version as an environment variable
         run: |
           echo "Deploying bundle to DEV..."
           databricks bundle deploy \
             --var="git_sha=${{ github.sha }}" \
             --var="branch=${{ github.ref_name }}" \
-            --var="version=$NEW_VERSION"
+            --var="version=$VERSION"
 
       - name: Verify DEV deploy
         run: |
@@ -136,12 +137,13 @@ jobs:
       - name: Deploy to ACC
         env:
           DATABRICKS_BUNDLE_ENV: acc
+          VERSION: ${{ env.VERSION }}  # Explicitly set the version as an environment variable
         run: |
           echo "Deploying bundle to ACC..."
           databricks bundle deploy \
             --var="git_sha=${{ github.sha }}" \
             --var="branch=${{ github.ref_name }}" \
-            --var="version=$NEW_VERSION"
+            --var="version=$VERSION"
 
       - name: Verify ACC deploy
         run: |
@@ -200,12 +202,13 @@ jobs:
       - name: Deploy to PRD
         env:
           DATABRICKS_BUNDLE_ENV: prd
+          VERSION: ${{ env.VERSION }}  # Explicitly set the version as an environment variable
         run: |
           echo "Deploying bundle to PRD..."
           databricks bundle deploy \
             --var="git_sha=${{ github.sha }}" \
             --var="branch=${{ github.ref_name }}" \
-            --var="version=$NEW_VERSION"
+            --var="version=$VERSION"
 
       - name: Verify PRD deploy
         run: |
