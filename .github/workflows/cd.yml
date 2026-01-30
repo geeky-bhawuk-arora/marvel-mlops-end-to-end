@@ -40,7 +40,7 @@ jobs:
           EOF
 
       - name: Install uv
-        uses: astral-sh/setup-uv@3e1a0219a45a39a654b61f1d6a7cbc24c949dfc7 #v5.4.1
+        uses: astral-sh/setup-uv@v7 #v5.4.1
         with:
           enable-cache: true
 
