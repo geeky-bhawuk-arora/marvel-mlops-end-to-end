@@ -110,8 +110,11 @@ jobs:
 
       - name: Ensure ACC folder exists
         run: |
-          databricks workspace mkdirs /Workspace/Users/${USER}/.bundle/acc/marvel-characters
-          databricks workspace ls /Workspace/Users/${USER}/.bundle/acc || echo "Folder ready"
+          # Create the ACC folder in /Workspace/Shared (no permissions issues here)
+          databricks workspace mkdirs /Workspace/Shared/.bundle/acc/marvel-characters
+          databricks workspace ls /Workspace/Shared/.bundle/acc || echo "Folder ready"
+
+
 
       - name: Deploy to ACC
         env:
