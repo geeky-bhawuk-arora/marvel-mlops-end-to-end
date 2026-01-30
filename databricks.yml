@@ -12,15 +12,14 @@ artifacts:
 
 variables:
   git_sha:
-    description: git_sha
+    description: Git commit SHA
     default: abcd
   branch:
-    description: branch
+    description: Git branch name
     default: main
   schedule_pause_status:
-    description: schedule pause status
+    description: Schedule pause status
     default: PAUSED
-
 
 targets:
   dev:
@@ -38,8 +37,11 @@ targets:
       name_prefix: 'acc_'
     workspace:
       host: https://dbc-8806ae94-e7ec.cloud.databricks.com
-      root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
+      root_path: /Workspace/Shared/.bundle/${bundle.target}/${bundle.name}
       profile: marvelous
+    permissions:
+      - group_name: users
+        level: CAN_MANAGE
     variables:
       schedule_pause_status: PAUSED
 
@@ -47,9 +49,10 @@ targets:
     mode: production
     workspace:
       host: https://dbc-8806ae94-e7ec.cloud.databricks.com
-      root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
+      root_path: /Workspace/Teams/data-platform/.bundle/${bundle.target}/${bundle.name}
       profile: marvelous
+    permissions:
+      - group_name: data-platform
+        level: CAN_MANAGE
     variables:
-      schedule_pause_status: PAUSED # normally UNPAUSED
-
-# checking 
+      schedule_pause_status: UNPAUSED
