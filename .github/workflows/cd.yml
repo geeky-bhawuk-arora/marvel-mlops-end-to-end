@@ -69,6 +69,15 @@ jobs:
 
       - uses: databricks/setup-cli@v0.246.0
 
+      - name: Configure Databricks CLI
+        run: |
+          cat > ~/.databrickscfg << EOF
+          [default]
+          host = $DATABRICKS_HOST
+          client_id = $DATABRICKS_CLIENT_ID
+          client_secret = $DATABRICKS_CLIENT_SECRET
+          EOF
+
       - name: Deploy to DEV
         env:
           DATABRICKS_BUNDLE_ENV: dev
@@ -94,6 +103,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: databricks/setup-cli@v0.246.0
 
+      - name: Configure Databricks CLI
+        run: |
+          cat > ~/.databrickscfg << EOF
+          [default]
+          host = $DATABRICKS_HOST
+          client_id = $DATABRICKS_CLIENT_ID
+          client_secret = $DATABRICKS_CLIENT_SECRET
+          EOF
+
       - name: Deploy to ACC
         env:
           DATABRICKS_BUNDLE_ENV: acc
@@ -116,6 +134,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: databricks/setup-cli@v0.246.0
+
+      - name: Configure Databricks CLI
+        run: |
+          cat > ~/.databrickscfg << EOF
+          [default]
+          host = $DATABRICKS_HOST
+          client_id = $DATABRICKS_CLIENT_ID
+          client_secret = $DATABRICKS_CLIENT_SECRET
+          EOF
 
       - name: Deploy to PRD
         env:
