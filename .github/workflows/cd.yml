@@ -65,7 +65,7 @@ jobs:
           databricks bundle deploy \
             --var="git_sha=${{ github.sha }}" \
             --var="branch=${{ github.ref_name }}"
-          if [ "${{ matrix.environment }}" = "prd" ]; then
+          if [ "${{ matrix.environment }}" = "acc" ]; then
             VERSION=$(cat version.txt)
             echo "VERSION=$VERSION"
             git tag "$VERSION"
