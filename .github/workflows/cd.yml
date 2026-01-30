@@ -44,6 +44,20 @@ jobs:
         with:
           enable-cache: true
 
+      - name: List Databricks CLI profiles
+        run: |
+          echo "Listing ~/.databrickscfg content (if it exists):"
+          if [ -f ~/.databrickscfg ]; then
+            cat ~/.databrickscfg
+          else
+            echo "No ~/.databrickscfg found"
+          fi
+      
+          echo
+          echo "Listing all profiles via Databricks CLI:"
+          databricks auth list || echo "No profiles detected by CLI"
+
+      
       - name: Deploy to Databricks
         env:
           DATABRICKS_BUNDLE_ENV: ${{ matrix.environment }}
